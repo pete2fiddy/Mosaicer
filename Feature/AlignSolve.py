@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import Feature.CVConverter as CVConverter
+from Feature.FeatureMatch import FeatureMatch
 import cv2
 
 '''AlignSolver is an abstract class for different type of image transformations. The input is a list of feature matches
@@ -32,8 +33,27 @@ class AlignSolve(ABC):
     def transform_feature_match(self, feature_match):
         pass
 
+    '''is a little bit clunky but leverages the fact that all AlignSolve subclasses have to have a feature match transformation object
+    so you don't have to recode each time'''
+    def transform_point(self, point):
+        point_feature_match = FeatureMatch(point, point)
+        out_point = self.transform_feature_match(point_feature_match)
+        return out_point
 
+    def transform_points(self, points):
+        transformed_points = []
+        for i in range(0, len(points)):
+            transformed_points.append(self.transform_point(points[i]))
+        return transformed_points
 
+    def transform_image_points(self, image_points):
+        transformed_image_points = []
+        for i in range(0, len(image_points)):
+            xy = image_points[i][0]
+            transformed_xy = self.transform_point(xy)
+            append_image_point = (transformed_xy, image_points[i][1])
+            transformed_image_points.append(append_image_point)
+        return transformed_image_points
 
     '''returns as a list of tuples each FeatureMatch object where xy1 is transformed by the alignment matrix and xy2 is left unchanged'''
     def get_transformed_match_pairs(self):

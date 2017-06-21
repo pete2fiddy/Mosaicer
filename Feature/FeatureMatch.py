@@ -34,6 +34,13 @@ class FeatureMatch:
             out_feature_matches.append(append_feature_match)
         return out_feature_matches
 
+    def delta(self):
+        return self.xy2 - self.xy1
+
+    def transform(self, align_solve):
+        p1_transformed = align_solve.transform_feature_match(self)
+        return FeatureMatch(p1_transformed, self.xy2)
+
     def dist_to_xy2(self, compare_point):
         return np.linalg.norm(compare_point - self.xy2)
 
