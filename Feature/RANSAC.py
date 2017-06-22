@@ -5,18 +5,21 @@ from random import randint
 class RANSAC:
     '''the default maximum euclidian distance between a transformed point and the point to which it is matching
     for it to be considered an inlier'''
-    DEFAULT_INLIER_THRESHOLD = 3
+    DEFAULT_INLIER_THRESHOLD = 12
 
     '''uses the RANSAC algorithm to determine the best features to create a transformation matrix from.
 
     align_solver is an AlignSolver subclass. Answer_confidence is the confidence the algorithm uses to determine
     the number of times RANSAC should run to answer with a confidence that is inputted that the answer it returns
     is correct'''
-    def __init__(self, feature_matches, align_solver, num_iter, inlier_threshold = None):
+    def __init__(self, feature_matches, align_solver, inlier_threshold = None):
         self.inlier_threshold = RANSAC.DEFAULT_INLIER_THRESHOLD if inlier_threshold == None else inlier_threshold
         self.align_solver = align_solver
         self.feature_matches = feature_matches
-        self.num_iter = num_iter
+        self.num_iter = None
+
+    def set_params(self, params):
+        self.num_iter = params["num_iter"]
 
     '''
     fits the ransac model to find the model with optimal "agreement" with the feature_matches'''

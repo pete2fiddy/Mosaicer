@@ -2,33 +2,9 @@ import cv2
 from PIL import Image
 import numpy as np
 
-'''
-def feather_blend(image1, image2, window_size):
-    thresh_image1 = cv2.cvtColor(image1, cv2.COLOR_RGB2GRAY)
 
-    thresh_image1[thresh_image1 > 0] = 255.0
-    thresh_image2 = cv2.cvtColor(image2, cv2.COLOR_RGB2GRAY)
-    thresh_image2[thresh_image2 > 0] = 255.0
-
-
-    window = (window_size, window_size)
-    mag_resp_image1 = cv2.blur(thresh_image1, window)
-
-    mag_resp_image2 = cv2.blur(thresh_image2, window)
-    Image.fromarray(mag_resp_image1).show()
-    Image.fromarray(mag_resp_image2).show()
-
-    proportion_resp_image1 = np.zeros(thresh_image1.shape)
-    proportion_resp_image2 = np.zeros(thresh_image2.shape)
-
-    proportion_resp_image1 = mag_resp_image1/(mag_resp_image1 + mag_resp_image2)
-    proportion_resp_image2 = mag_resp_image2/(mag_resp_image2 + mag_resp_image1)
-
-    Image.fromarray(proportion_resp_image1).show()
-    Image.fromarray(proportion_resp_image2).show()
-'''
-
-def feather_blend(blend_image, base_image, window_size):
+def feather_blend(blend_image, base_image, blend_params):
+    window_size = blend_params["window_size"]
     blend_thresh_image = cv2.cvtColor(blend_image, cv2.COLOR_RGB2GRAY)
     blend_thresh_image[blend_thresh_image > 0] = 255.0
     base_thresh_image = cv2.cvtColor(base_image, cv2.COLOR_RGB2GRAY)
@@ -53,7 +29,19 @@ def feather_blend(blend_image, base_image, window_size):
 
     weighted_base_image = base_response_image[:,:,np.newaxis] * base_image
 
-    out_image = np.uint8(weighted_blend_image + weighted_base_image)#np.uint8(blend_image * blend_response_image + base_image * base_response_image)
-
-    #Image.fromarray(out_image).show()
+    out_image = np.uint8(weighted_blend_image + weighted_base_image)
     return out_image
+
+def paste_blend(blend_image, base_image, blend_params = None):
+    thresh_blend_image = cv2.cvtColor(blend_image, cv2.COLOR_RGB2GRAY)
+    thresh_base_image = cv2.cvtColor(base_image, cv2.COLOR_RGB2GRAY)
+
+    thresh_blend_image[thresh_blend_image > 0] = 1.0
+    thresh_base_image[thresh_base_image > 0] = 1.0
+
+
+    ignore_space = np.logical_not(np.logical_and(thresh_blend_image, thresh_base_image)).astype(np.float32)
+
+    out_image = blend_image.copy().astype(np.float32)
+    out_image += ignore_space[:,:,np.newaxis] * base_image
+    return np.uint8(out_image)

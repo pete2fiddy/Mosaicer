@@ -64,6 +64,10 @@ class AlignSolve(ABC):
             match_pairs.append(append_pair)
         return match_pairs
 
+    def draw_features(self, image1, image2, radius, thickness = 5):
+        for i in range(0, len(self.solve_feature_matches)):
+            image1, image2 = self.solve_feature_matches[i].draw(image1, image2, radius, thickness = thickness)
+
     '''holds the number of required points for the alignment object to solve for a transformation matrix'''
     @staticmethod
     @abstractmethod

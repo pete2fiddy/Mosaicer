@@ -1,6 +1,6 @@
 import numpy as np
 import Feature.CVConverter as CVConverter
-
+import cv2
 '''the FeatureMatch class is used to hold a reference to an XY position in "image1" that contains a feature that appears in an XY position
 in "image2"'''
 class FeatureMatch:
@@ -36,6 +36,9 @@ class FeatureMatch:
 
     def delta(self):
         return self.xy2 - self.xy1
+
+    def draw(self, image1, image2, radius, thickness = 5):
+        return cv2.circle(image1, tuple(self.xy1.astype(np.int)), radius, (255,0,0), thickness = thickness), cv2.circle(image2, tuple(self.xy2.astype(np.int)), radius, (0,0,255), thickness = thickness)
 
     def transform(self, align_solve):
         p1_transformed = align_solve.transform_feature_match(self)

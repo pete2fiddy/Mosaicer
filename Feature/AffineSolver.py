@@ -82,21 +82,34 @@ class AffineSolver(AlignSolve):
         cv_affine_align_mat = self.align_mat[:2, :].copy()
         transformed_corner_vectors = [self.align_mat.dot(untransformed_corner_vectors[i]) for i in range(0, len(untransformed_corner_vectors))]
         transformed_origin = transformed_corner_vectors[0]
+
+        print('transformed corner vectors: ', transformed_corner_vectors)
+
+
         bounding_box = VectorMath.vectors_bounding_box(transformed_corner_vectors)
         transformed_image_dims = (int(bounding_box[2]-bounding_box[0]), int(bounding_box[3] - bounding_box[1]))
         cv_affine_align_mat[0,2] -= bounding_box[0]
         cv_affine_align_mat[1,2] -= bounding_box[1]
-        '''bounding box works kind of well, but has some issues chopping off parts of the image'''
 
 
+
+
+
+
+
+
+        transformed_corner_vectors = np.array([-bounding_box[0], -bounding_box[1]])
+        '''issue with transformed_origin being incorrect is because opencv automatically aligns the image so that it will fit inside of the frame,
+        causing the values to be inaccurate'''
 
         transformed_image = cv2.warpAffine(image, cv_affine_align_mat, transformed_image_dims)
+        
 
         '''transformed_feature_matches = []
         for i in range(0, len(self.all_feature_matches)):
             transformed_feature_matches.append(self.all_feature_matches[i].transform(self))'''
 
-        return transformed_image, transformed_origin[:2]#, transformed_feature_matches
+        return transformed_image#, transformed_origin[:2]#, transformed_feature_matches
 
 
     '''def transform_image_points(self, image_points):
