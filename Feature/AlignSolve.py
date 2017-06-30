@@ -33,6 +33,12 @@ class AlignSolve(ABC):
     def transform_feature_match(self, feature_match):
         pass
 
+    def transform_feature_matches(self, feature_matches):
+        out_matches = []
+        for i in range(0, len(feature_matches)):
+            out_matches.append(self.transform_feature_match(feature_matches[i]))
+        return out_matches
+
     '''is a little bit clunky but leverages the fact that all AlignSolve subclasses have to have a feature match transformation object
     so you don't have to recode each time'''
     def transform_point(self, point):
@@ -67,6 +73,21 @@ class AlignSolve(ABC):
     def draw_features(self, image1, image2, radius, thickness = 5):
         for i in range(0, len(self.solve_feature_matches)):
             image1, image2 = self.solve_feature_matches[i].draw(image1, image2, radius, thickness = thickness)
+
+    '''used to ensure that the image that contains the transformed image is clipped so that it perfectly bounds the transformed image (sometimes is not the case when
+    transformed image bounding box is precalculated)'''
+    @staticmethod
+    def get_transformed_image_bounds(trans_image):
+        thresh_trans_image = cv2.cvtColor(trans_image, cv2.COLOR_RGB2GRAY)
+        thresh_trans_image[thresh_trans_image > 0] = 255
+        thresh_contour = cv2.findContours(thresh_trans_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+        contour_bbox = cv2.boundingRect(thresh_contour)
+        return contour_bbox
+
+    @staticmethod
+    def crop_transformed_image_to_bounds(trans_image):
+        bounds = AlignSolve.get_transformed_image_bounds(trans_image)
+        return trans_image[bounds[1] : bounds[3], bounds[0] : bounds[2]]
 
     '''holds the number of required points for the alignment object to solve for a transformation matrix'''
     @staticmethod

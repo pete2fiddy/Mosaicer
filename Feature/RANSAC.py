@@ -5,7 +5,7 @@ from random import randint
 class RANSAC:
     '''the default maximum euclidian distance between a transformed point and the point to which it is matching
     for it to be considered an inlier'''
-    DEFAULT_INLIER_THRESHOLD = 12
+    DEFAULT_INLIER_THRESHOLD = 40#12
 
     '''uses the RANSAC algorithm to determine the best features to create a transformation matrix from.
 
@@ -18,11 +18,20 @@ class RANSAC:
         self.feature_matches = feature_matches
         self.num_iter = None
 
+    '''
+    To add: a good way to set a "minimum" number of inliers for an image to be deemed able to be well-mosaiced with another
+    '''
     def set_params(self, params):
         self.num_iter = params["num_iter"]
+        self.inlier_cutoff = params["inlier_cutoff"]
 
     '''
     fits the ransac model to find the model with optimal "agreement" with the feature_matches'''
+
+    '''possible addition: Whenever a new high-scorer is found, form random samples but keep
+    some samples from that high-scorer constant. This may allow for higher scores based on the fact that some
+    subset of the previous high-scorer is correct but the remaining are not.'''
+
     def fit(self):
         best_fit_align_solve = None
         best_fit_align_score = None
@@ -34,7 +43,11 @@ class RANSAC:
                 print("better inlier score found: ", iter_inlier_score)
                 best_fit_align_score = iter_inlier_score
                 best_fit_align_solve = iter_align_solve
+                if best_fit_align_score > self.inlier_cutoff:
+                    break
+
         return best_fit_align_solve
+        return None
 
     '''randomly samples N points from feature_matches where N is based on the "NUM_SOLVE_FEATURES" static abstract parameter of
     self.align_solver'''

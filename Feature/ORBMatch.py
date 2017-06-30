@@ -17,7 +17,7 @@ class ORBMatch(MatchType):
 
     def init_features(self):
         orb = cv2.ORB_create()
-        image1_keypoints, self.image1_descriptors = orb.detectAndCompute(self.image1, self.mask)
+        image1_keypoints, self.image1_descriptors = orb.detectAndCompute(self.image1, mask = None)
         image2_keypoints, self.image2_descriptors = orb.detectAndCompute(self.image2, self.mask)
         self.set_features(image1_keypoints, image2_keypoints)
 

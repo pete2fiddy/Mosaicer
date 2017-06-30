@@ -19,6 +19,7 @@ class MatchType(ABC):
     '''in the future replace ransac_params with the "pass arguments as tuple" thing I learned from Nicholas'''
     def create_mosaic(self, align_solve, ransac_params):
         align_solver = self.create_align_solver(align_solve, ransac_params)
+
         return ImageStitcher.stitch_images(self.image1, self.image2, align_solver)
 
     def create_align_solver(self, align_solve_type, ransac_params):

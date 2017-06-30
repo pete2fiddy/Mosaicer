@@ -29,18 +29,6 @@ class AffineSolver(AlignSolve):
         match_matrix = self.get_match_matrix()
         features2_vec = self.get_destination_vector()
 
-        '''
-        not sure why this wasn't working. Is likely because I used too many bad features... Try again once I have implemented RANSAC
-        affine_mat_weights = ((np.linalg.inv((match_matrix.T).dot(match_matrix))).dot(match_matrix.T)).dot(features2_vec)
-
-        print("affine mat weights shape: ", affine_mat_weights.shape)
-
-        affine_mat = np.array([[affine_mat_weights[0], affine_mat_weights[1], affine_mat_weights[2]],
-                               [affine_mat_weights[3], affine_mat_weights[4], affine_mat_weights[5]],
-                               [0,                     0,                     1.0]])
-        print("affine mat: ", affine_mat)
-        self.align_mat = affine_mat'''
-
         xy1s, xy2s = self.matches_to_points()
         cv_affine_mat = cv2.getAffineTransform(xy1s, xy2s)
         affine_mat = np.array([[cv_affine_mat[0,0], cv_affine_mat[0,1], cv_affine_mat[0,2]],
@@ -82,45 +70,25 @@ class AffineSolver(AlignSolve):
         cv_affine_align_mat = self.align_mat[:2, :].copy()
         transformed_corner_vectors = [self.align_mat.dot(untransformed_corner_vectors[i]) for i in range(0, len(untransformed_corner_vectors))]
         transformed_origin = transformed_corner_vectors[0]
-
-        print('transformed corner vectors: ', transformed_corner_vectors)
-
-
         bounding_box = VectorMath.vectors_bounding_box(transformed_corner_vectors)
         transformed_image_dims = (int(bounding_box[2]-bounding_box[0]), int(bounding_box[3] - bounding_box[1]))
         cv_affine_align_mat[0,2] -= bounding_box[0]
         cv_affine_align_mat[1,2] -= bounding_box[1]
+        shift = np.array([bounding_box[0], bounding_box[1]])
+        transformed_image = cv2.warpAffine(image, cv_affine_align_mat, transformed_image_dims, flags = cv2.INTER_LINEAR)
+        '''
+        thresh_transformed_image = cv2.cvtColor(transformed_image, cv2.COLOR_RGB2GRAY)
+        thresh_transformed_image[thresh_transformed_image > 0] = 255
+        thresh_transformed_image_contour = cv2.findContours(thresh_transformed_image, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)[0]
+        thresh_transformed_image_bbox = cv2.boundingRect(thresh_transformed_image_contour)
+        transformed_image = transformed_image[thresh_transformed_image_bbox[1]:thresh_transformed_image_bbox[3], thresh_transformed_image_bbox[0]:thresh_transformed_image_bbox[2]]
+        '''
+
+        #transformed_image = AlignSolve.crop_transformed_image_to_bounds(transformed_image)
 
 
 
-
-
-
-
-
-        transformed_corner_vectors = np.array([-bounding_box[0], -bounding_box[1]])
-        '''issue with transformed_origin being incorrect is because opencv automatically aligns the image so that it will fit inside of the frame,
-        causing the values to be inaccurate'''
-
-        transformed_image = cv2.warpAffine(image, cv_affine_align_mat, transformed_image_dims)
-        
-
-        '''transformed_feature_matches = []
-        for i in range(0, len(self.all_feature_matches)):
-            transformed_feature_matches.append(self.all_feature_matches[i].transform(self))'''
-
-        return transformed_image#, transformed_origin[:2]#, transformed_feature_matches
-
-
-    '''def transform_image_points(self, image_points):
-        transformed_points = []
-        for i in range(0, len(image_points)):
-            point_xy = np.array([image_points[i][0][0], image_points[i][0][1], 1.0])
-            transformed_point = (self.align_mat.dot(point_xy))[0:2]
-            transformed_points.append((transformed_point, image_points[i][1]))
-        return transformed_points'''
-
-
+        return transformed_image, shift
 
 
     def transform_feature_match(self, feature_match):

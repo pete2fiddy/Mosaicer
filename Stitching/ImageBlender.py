@@ -1,6 +1,7 @@
 import cv2
 from PIL import Image
 import numpy as np
+from Feature.AlignSolve import AlignSolve
 
 
 def feather_blend(blend_image, base_image, blend_params):
